@@ -1,0 +1,27 @@
+{% extends "base.html" %}{% load humanize %}
+{% block title %}Transactions · ExpenseTracker{% endblock %}
+{% block content %}
+<section class="hero"><div><p class="eyebrow">MONEY ACTIVITY</p><h1>Transactions</h1><p>{{ page.paginator.count }} result{{ page.paginator.count|pluralize }} · in Rs. {{ totals.income|floatformat:0|intcomma }} · out Rs. {{ totals.expense|floatformat:0|intcomma }}</p></div>
+  <div class="actions"><a class="btn" href="{% url 'export_csv' %}?{{ qs_string }}">⇩ CSV</a><a class="primary" href="{% url 'transaction_add' %}">＋ Add transaction</a></div></section>
+<div class="panel tablepanel">
+  <form class="toolbar" method="get">
+    <input name="q" value="{{ f.q|default:'' }}" placeholder="Search…" aria-label="Search">
+    <select name="type" aria-label="Type"><option value="">All types</option><option value="income" {% if f.type == "income" %}selected{% endif %}>Income</option><option value="expense" {% if f.type == "expense" %}selected{% endif %}>Expense</option></select>
+    <select name="category" aria-label="Category"><option value="">All categories</option>{% for c in categories %}<option value="{{ c.pk }}" {% if f.category == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}</select>
+    <input type="date" name="from" value="{{ f.from|default:'' }}" aria-label="From date"><input type="date" name="to" value="{{ f.to|default:'' }}" aria-label="To date">
+    <button class="btn">Filter</button>{% if qs_string %}<a class="btn ghost" href="{% url 'transactions' %}">Clear</a>{% endif %}
+  </form>
+  <div class="tablewrap"><table><thead><tr><th>Transaction</th><th>Category</th><th>Payment</th><th>Date</th><th class="r">Amount</th><th></th></tr></thead><tbody>
+  {% for t in page %}<tr><td><b>{{ t.title }}</b>{% if t.notes %}<small class="sub">{{ t.notes|truncatechars:50 }}</small>{% endif %}</td>
+    <td>{% if t.category %}<span class="chip" style="--c:{{ t.category.color }}">{{ t.category.icon }} {{ t.category.name }}</span>{% else %}<span class="muted">Uncategorized</span>{% endif %}</td>
+    <td>{{ t.get_payment_method_display }}</td><td>{{ t.date|date:"d M Y" }}</td>
+    <td class="r {{ t.transaction_type }}">{% if t.transaction_type == "income" %}+{% else %}−{% endif %}Rs. {{ t.amount|floatformat:0|intcomma }}</td>
+    <td class="r"><a class="btn sm" href="{% url 'transaction_edit' t.pk %}">Edit</a></td></tr>
+  {% empty %}<tr><td colspan="6" class="empty">No transactions match. {% if qs_string %}Try clearing filters.{% else %}<a href="{% url 'transaction_add' %}">Add one</a>.{% endif %}</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% if page.has_other_pages %}<div class="pager">
+    {% if page.has_previous %}<a class="btn sm" href="?{{ qs_string }}&page={{ page.previous_page_number }}">← Prev</a>{% endif %}
+    <span class="muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}<a class="btn sm" href="?{{ qs_string }}&page={{ page.next_page_number }}">Next →</a>{% endif %}</div>{% endif %}
+</div>
+{% endblock %}

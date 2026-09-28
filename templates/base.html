@@ -1,0 +1,51 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}ExpenseTracker{% endblock %}</title>
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+<link rel="stylesheet" href="{% static 'css/app.css' %}">
+{% block head %}{% endblock %}
+</head>
+<body>
+{% if user.is_authenticated %}
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="{% url 'dashboard' %}"><span class="brandmark">₨</span><span>Expense<em>Tracker</em></span></a>
+    <nav aria-label="Main">
+      {% url 'dashboard' as u_dash %}{% url 'transactions' as u_tx %}{% url 'analytics' as u_an %}{% url 'budgets' as u_bud %}{% url 'categories' as u_cat %}
+      <a href="{{ u_dash }}" {% if request.path == u_dash %}class="active" aria-current="page"{% endif %}><i>⌂</i><span>Dashboard</span></a>
+      <a href="{{ u_tx }}" {% if u_tx in request.path %}class="active" aria-current="page"{% endif %}><i>▤</i><span>Transactions</span></a>
+      <a href="{{ u_an }}" {% if u_an in request.path %}class="active" aria-current="page"{% endif %}><i>⌁</i><span>Analytics</span></a>
+      <a href="{{ u_bud }}" {% if u_bud in request.path %}class="active" aria-current="page"{% endif %}><i>◫</i><span>Budgets</span></a>
+      <a href="{{ u_cat }}" {% if u_cat in request.path %}class="active" aria-current="page"{% endif %}><i>◈</i><span>Categories</span></a>
+      {% if user.is_staff %}<a href="{% url 'admin:index' %}"><i>⚙</i><span>Admin</span></a>{% endif %}
+    </nav>
+    <div class="profile">
+      <div class="avatar">{{ user.username|slice:":2"|upper }}</div>
+      <div class="who"><b>{{ user.get_full_name|default:user.username }}</b><small>Personal account</small></div>
+      <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="linkbtn" title="Sign out" aria-label="Sign out">⏻</button></form>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+  <main class="main">
+    <header class="topbar">
+      <button class="icon menu" id="menu" aria-label="Open menu">☰</button>
+      <a class="mobile-brand" href="{% url 'dashboard' %}">Expense<em>Tracker</em></a>
+      <form class="search" action="{% url 'transactions' %}" method="get" role="search">
+        <input name="q" value="{{ f.q|default:'' }}" placeholder="Search transactions…" aria-label="Search transactions">
+      </form>
+      <button class="icon" id="theme" aria-label="Toggle dark mode">◐</button>
+    </header>
+    {% if messages %}<div class="toasts" role="status">{% for m in messages %}<div class="toast {{ m.tags }}">{{ m }}</div>{% endfor %}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% else %}
+<main class="authwrap">{% block auth %}{% endblock %}</main>
+{% endif %}
+<script src="{% static 'js/app.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

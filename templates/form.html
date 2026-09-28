@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block title %}{{ title }} · ExpenseTracker{% endblock %}
+{% block content %}
+<section class="hero"><div><p class="eyebrow">{{ title|upper }}</p><h1>{{ title }}</h1></div></section>
+<div class="panel formpanel">
+  <form method="post" class="stack">{% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="formgrid">{% for field in form %}<label class="{% if field.name == 'notes' or field.name == 'title' %}full{% endif %}">{{ field.label }}{{ field }}{{ field.errors }}</label>{% endfor %}</div>
+    <div class="actions"><button class="primary">Save</button><a class="btn" href="{% url back %}">Cancel</a></div>
+  </form>
+  {% if obj %}
+  <form method="post" action="{% url delete_url obj.pk %}" class="danger-zone" data-confirm="Delete this permanently?">{% csrf_token %}
+    <span class="muted">Danger zone</span><button class="btn danger">Delete</button>
+  </form>{% endif %}
+</div>
+{% endblock %}

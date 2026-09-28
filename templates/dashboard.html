@@ -1,0 +1,38 @@
+{% extends "base.html" %}{% load humanize %}
+{% block title %}Dashboard · ExpenseTracker{% endblock %}
+{% block content %}
+<section class="hero">
+  <div><p class="eyebrow">{{ month_label|upper }}</p><h1>Hello, {{ user.first_name|default:user.username }} 👋</h1><p>Here’s how this month is going.</p></div>
+  <a class="primary" href="{% url 'transaction_add' %}">＋ Add transaction</a>
+</section>
+<div class="cards">
+  <div class="card accent"><span>Balance (all time)</span><strong>Rs. {{ overall.balance|floatformat:0|intcomma }}</strong><small>Across {{ overall.count }} transaction{{ overall.count|pluralize }}</small></div>
+  <div class="card"><span>Income this month</span><strong>Rs. {{ cur.income|floatformat:0|intcomma }}</strong>
+    {% if income_delta is not None %}<em class="{% if income_delta >= 0 %}up{% else %}down{% endif %}">{{ income_delta|floatformat:1 }}% vs last month</em>{% else %}<small>No prior month to compare</small>{% endif %}</div>
+  <div class="card"><span>Spent this month</span><strong>Rs. {{ cur.expense|floatformat:0|intcomma }}</strong>
+    {% if expense_delta is not None %}<em class="{% if expense_delta <= 0 %}up{% else %}down{% endif %}">{{ expense_delta|floatformat:1 }}% vs last month</em>{% else %}<small>No prior month to compare</small>{% endif %}</div>
+  <div class="card"><span>Saved this month</span><strong class="{% if cur.balance < 0 %}expense{% endif %}">Rs. {{ cur.balance|floatformat:0|intcomma }}</strong>
+    {% if cur.savings_rate is not None %}<small>{{ cur.savings_rate|floatformat:0 }}% of income</small>{% else %}<small>No income yet</small>{% endif %}</div>
+</div>
+<div class="grid2">
+  <div class="panel"><div class="panelhead"><div><h3>Income vs expense</h3><small>Last 6 months</small></div></div>
+    <div class="chartbox"><canvas id="cashflow" aria-label="Income versus expense bar chart" role="img"></canvas></div></div>
+  <div class="panel"><div class="panelhead"><div><h3>Spending by category</h3><small>This month</small></div></div>
+    {% if breakdown %}<div class="chartbox"><canvas id="donut" aria-label="Spending by category" role="img"></canvas></div>{% else %}<p class="empty">No expenses recorded this month.</p>{% endif %}</div>
+</div>
+<div class="grid2">
+  <div class="panel"><div class="panelhead"><h3>Recent transactions</h3><a href="{% url 'transactions' %}">View all →</a></div>
+    <div class="txlist">{% for t in recent %}
+      <a class="tx" href="{% url 'transaction_edit' t.pk %}"><div class="txicon" style="--c:{{ t.category.color|default:'#a7b0bc' }}">{{ t.category.icon|default:"◇" }}</div>
+        <div><b>{{ t.title }}</b><small>{{ t.date|date:"d M" }} · {{ t.category|default:"Uncategorized" }} · {{ t.get_payment_method_display }}</small></div>
+        <strong class="{{ t.transaction_type }}">{% if t.transaction_type == "income" %}+{% else %}−{% endif %}Rs. {{ t.amount|floatformat:0|intcomma }}</strong></a>
+    {% empty %}<p class="empty">No transactions yet. <a href="{% url 'transaction_add' %}">Add your first one</a>.</p>{% endfor %}</div></div>
+  <div class="panel"><div class="panelhead"><h3>Budgets</h3><a href="{% url 'budgets' %}">Manage →</a></div>
+    {% for p in budgets %}<div class="barrow"><span>{{ p.budget.category.icon }} {{ p.budget.category.name }}</span><b>Rs. {{ p.spent|floatformat:0|intcomma }} / {{ p.budget.amount|floatformat:0|intcomma }}</b>
+      <div class="bar {{ p.state }}"><i style="width:{% if p.pct > 100 %}100{% else %}{{ p.pct|floatformat:0 }}{% endif %}%"></i></div></div>
+    {% empty %}{% if breakdown %}{% for c in breakdown %}<div class="barrow"><span>{{ c.icon }} {{ c.name }}</span><b>Rs. {{ c.total|floatformat:0|intcomma }}</b>
+      <div class="bar"><i style="width:{{ c.share|floatformat:0 }}%;background:{{ c.color }}"></i></div></div>{% endfor %}
+    {% else %}<p class="empty">Set a budget to track spending limits.</p>{% endif %}{% endfor %}</div>
+</div>
+{{ chart|json_script:"chart-data" }}
+{% endblock %}

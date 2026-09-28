@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% load humanize %}
+{% block title %}Budgets · ExpenseTracker{% endblock %}
+{% block content %}
+<section class="hero"><div><p class="eyebrow">SPENDING LIMITS</p><h1>Budgets · {{ period|date:"F Y" }}</h1><p>Stay ahead of overspending.</p></div>
+  <div class="actions"><form method="get" class="inline"><input type="month" name="ym" value="{{ period|date:'Y-m' }}" onchange="var p=this.value.split('-');this.form.month.value=+p[1];this.form.year.value=p[0];this.form.submit()" aria-label="Month">
+    <input type="hidden" name="month" value="{{ month }}"><input type="hidden" name="year" value="{{ year }}"></form>
+  <a class="primary" href="{% url 'budget_add' %}">＋ Set budget</a></div></section>
+<div class="panel">{% for p in progress %}
+  <div class="budgetrow"><div class="txicon" style="--c:{{ p.budget.category.color }}">{{ p.budget.category.icon }}</div>
+    <div class="grow"><div class="between"><b>{{ p.budget.category.name }}</b><span class="{% if p.state == 'over' %}expense{% endif %}">Rs. {{ p.spent|floatformat:0|intcomma }} of {{ p.budget.amount|floatformat:0|intcomma }}</span></div>
+      <div class="bar {{ p.state }}"><i style="width:{% if p.pct > 100 %}100{% else %}{{ p.pct|floatformat:0 }}{% endif %}%"></i></div>
+      <small class="muted">{% if p.state == 'over' %}Over by Rs. {{ p.remaining|floatformat:0|cut:"-"|intcomma }}{% else %}Rs. {{ p.remaining|floatformat:0|intcomma }} left ({{ p.pct|floatformat:0 }}% used){% endif %}</small></div>
+    <a class="btn sm" href="{% url 'budget_edit' p.budget.pk %}">Edit</a></div>
+{% empty %}<p class="empty">No budgets for this month. <a href="{% url 'budget_add' %}">Set one</a>.</p>{% endfor %}</div>
+{% endblock %}

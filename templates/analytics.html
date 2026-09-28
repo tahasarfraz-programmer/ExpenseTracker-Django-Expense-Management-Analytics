@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% load humanize %}
+{% block title %}Analytics · ExpenseTracker{% endblock %}
+{% block content %}
+<section class="hero"><div><p class="eyebrow">DATA INTELLIGENCE</p><h1>Financial analytics</h1><p>Your real spending history, summarised.</p></div>
+  <form method="get"><select name="months" onchange="this.form.submit()" aria-label="Range">
+    <option value="3" {% if months == 3 %}selected{% endif %}>Last 3 months</option><option value="6" {% if months == 6 %}selected{% endif %}>Last 6 months</option>
+    <option value="12" {% if months == 12 %}selected{% endif %}>Last 12 months</option><option value="24" {% if months == 24 %}selected{% endif %}>Last 24 months</option></select></form></section>
+<div class="analytics-grid">
+  <div class="panel"><div class="panelhead"><h3>Income vs expense trend</h3></div><div class="chartbox tall"><canvas id="trend" role="img" aria-label="Monthly trend line chart"></canvas></div></div>
+  <div class="panel"><div class="panelhead"><h3>Category mix (all time)</h3></div>
+    {% if breakdown %}<div class="chartbox"><canvas id="mix" role="img" aria-label="Category mix"></canvas></div>{% else %}<p class="empty">No expenses yet.</p>{% endif %}</div>
+</div>
+<div class="insights">{% for i in insights %}<div><b>💡 Insight</b><p>{{ i }}</p></div>{% endfor %}</div>
+{% if breakdown %}<div class="panel" style="margin-top:16px"><div class="panelhead"><h3>Where the money goes</h3></div>
+  {% for c in breakdown %}<div class="barrow"><span>{{ c.icon }} {{ c.name }}</span><b>Rs. {{ c.total|floatformat:0|intcomma }} · {{ c.share|floatformat:0 }}%</b><div class="bar"><i style="width:{{ c.share|floatformat:0 }}%;background:{{ c.color }}"></i></div></div>{% endfor %}</div>{% endif %}
+{{ chart|json_script:"chart-data" }}
+{% endblock %}

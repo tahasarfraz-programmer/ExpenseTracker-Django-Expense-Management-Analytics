@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% load humanize %}
+{% block title %}Categories · ExpenseTracker{% endblock %}
+{% block content %}
+<section class="hero"><div><p class="eyebrow">ORGANISE</p><h1>Categories</h1><p>Group transactions your way.</p></div><a class="primary" href="{% url 'category_add' %}">＋ New category</a></section>
+<div class="catgrid">{% for c in categories %}
+  <a class="panel catcard" href="{% url 'category_edit' c.pk %}"><div class="txicon" style="--c:{{ c.color }}">{{ c.icon }}</div><div><b>{{ c.name }}</b><small class="muted">{{ c.n }} transaction{{ c.n|pluralize }}</small></div></a>
+{% empty %}<p class="empty">No categories yet.</p>{% endfor %}</div>
+{% endblock %}
